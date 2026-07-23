@@ -1,8 +1,8 @@
 /**
  * LLM Router — routes agent calls to the correct provider
  * Atlas/Vox/Figaro → xAI Grok 4
- * Lux/Slate → Gemini 2.5 Pro
- * Canvi/Dobe/Tempo → Gemini 2.5 Flash
+ * Lux/Slate → Gemini 2.5 Flash-Lite (Luna)
+ * Canvi/Dobe/Tempo → Gemini 2.5 Flash-Lite (Luna)
  */
 
 export type LLMProvider = "grok" | "gemini-pro" | "gemini-flash" | "openai" | "anthropic";
@@ -50,9 +50,9 @@ export async function callLLM(
     case "grok":
       return callGrok(messages, options, startTime);
     case "gemini-pro":
-      return callGemini(messages, "gemini-2.5-pro", options, startTime);
+      return callGemini(messages, "gemini-2.5-flash-lite-preview-06-17", options, startTime);
     case "gemini-flash":
-      return callGemini(messages, "gemini-2.5-flash", options, startTime);
+      return callGemini(messages, "gemini-2.5-flash-lite-preview-06-17", options, startTime);
     case "openai":
       return callOpenAI(messages, "gpt-4o", options, startTime);
     case "anthropic":
@@ -171,7 +171,7 @@ async function callGemini(
     usageMetadata: { promptTokenCount: number; candidatesTokenCount: number; totalTokenCount: number };
   };
 
-  const provider: LLMProvider = model.includes("flash") ? "gemini-flash" : "gemini-pro";
+  const provider: LLMProvider = model.includes("lite") || model.includes("flash") ? "gemini-flash" : "gemini-pro";
   return {
     content: json.candidates[0].content.parts[0].text,
     model,
