@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  title           String
+  status          String   @default("ACTIVE")
+  platform        String   @default("youtube")
+  format          String   @default("short-form")
+  durationTarget  Int      @default(60)
+  aspectRatio     String   @default("9:16")
+  primaryProvider String   @default("LTX")
+  rawIdea         String?
+  founderName     String?
+  businessName    String?
+  tone            String?
+  shotCount       Int      @default(12)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  agentRuns       AgentRun[]
+  scripts         Script[]
+  shots           Shot[]
+  continuityBibles ContinuityBible[]
+  assets          Asset[]
+}
+
+model AgentRun {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String?
+  agent     String
+  status    String   @default("PENDING")
+  input     Json     @default("{}")
+  output    Json?
+  error     String?
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+  durationMs Int?
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Script {
+  id              String   @id @default(cuid())
+  projectId       String
+  title           String
+  hook            String
+  body            String
+  cta             String
+  durationSeconds Int
+  wordCount       Int
+  version         Int      @default(1)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ContinuityBible {
+  id            String   @id @default(cuid())
+  projectId     String
+  title         String
+  globalLook    Json
+  characters    Json
+  locations     Json
+  negativePrompt String
+  driftRisks    String[]
+  version       Int      @default(1)
+  createdAt     DateTime @default(now())
+
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Shot {
+  id                String   @id @default(cuid())
+  projectId         String
+  sequenceNumber    Int
+  sceneNumber       Int
+  title             String
+  description       String
+  durationSeconds   Int
+  provider          String
+  status            String   @default("READY_TO_GENERATE")
+  prompt            String
+  negativePrompt    String?
+  globalStylePacket String?
+  characterPacket   String?
+  locationPacket    String?
+  cameraPacket      String?
+  audioPacket       String?
+  camera            String?
+  motion            String?
+  continuityAnchor  String?
+  beatCue           String?
+  aspectRatio       String   @default("9:16")
+  fps               Int      @default(24)
+  providerJobId     String?
+  outputUrl         String?
+  thumbnailUrl      String?
+  qcScore           Float?
+  qcNotes           String?
+  generatedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assets            Asset[]
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  projectId String
+  shotId    String?
+  type      String
+  url       String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  shot      Shot?    @relation(fields: [shotId], references: [id])
+}
