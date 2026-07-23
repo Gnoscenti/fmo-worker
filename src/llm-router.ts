@@ -196,15 +196,14 @@ async function callOpenAI(
   if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
 
   const baseUrl = process.env.OPENAI_API_BASE ?? "https://api.openai.com/v1";
-  // GPT-5.x models use max_completion_tokens; legacy models use max_tokens
+  // GPT-5.x models use max_completion_tokens and don't support custom temperature
   const isNewGen = model.startsWith("gpt-5") || model.startsWith("o1") || model.startsWith("o3");
   const body: Record<string, unknown> = {
     model,
     messages,
-    temperature: options.temperature ?? 0.7,
     ...(isNewGen
       ? { max_completion_tokens: options.maxTokens ?? 4096 }
-      : { max_tokens: options.maxTokens ?? 4096 }),
+      : { max_tokens: options.maxTokens ?? 4096, temperature: options.temperature ?? 0.7 }),
   };
   if (options.responseFormat === "json") {
     body.response_format = { type: "json_object" };
