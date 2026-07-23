@@ -1,11 +1,10 @@
 /**
  * LLM Router — routes agent calls to the correct provider
  * Atlas/Vox/Figaro → xAI Grok 4
- * Lux/Slate → Gemini 2.5 Flash-Lite (Luna)
- * Canvi/Dobe/Tempo → Gemini 2.5 Flash-Lite (Luna)
+ * Lux/Slate/Canvi/Dobe/Tempo → OpenAI GPT-5.6 Luna
  */
 
-export type LLMProvider = "grok" | "gemini-pro" | "gemini-flash" | "openai" | "anthropic";
+export type LLMProvider = "grok" | "gemini-pro" | "gemini-flash" | "openai" | "openai-luna" | "anthropic";
 
 export interface LLMMessage {
   role: "system" | "user" | "assistant";
@@ -31,12 +30,12 @@ export interface LLMCallResult {
 export const AGENT_PROVIDER_MAP: Record<string, LLMProvider> = {
   ATLAS: "grok",
   VOX: "grok",
-  LUX: "gemini-pro",
-  SLATE: "gemini-pro",
+  LUX: "openai-luna",
+  SLATE: "openai-luna",
   FIGARO: "grok",
-  CANVI: "gemini-flash",
-  DOBE: "gemini-flash",
-  TEMPO: "gemini-flash",
+  CANVI: "openai-luna",
+  DOBE: "openai-luna",
+  TEMPO: "openai-luna",
 };
 
 export async function callLLM(
@@ -50,9 +49,11 @@ export async function callLLM(
     case "grok":
       return callGrok(messages, options, startTime);
     case "gemini-pro":
-      return callGemini(messages, "gemini-2.5-flash-lite-preview-06-17", options, startTime);
     case "gemini-flash":
-      return callGemini(messages, "gemini-2.5-flash-lite-preview-06-17", options, startTime);
+      // Legacy fallback — now routed to OpenAI Luna
+      return callOpenAI(messages, "gpt-5.6-luna", options, startTime);
+    case "openai-luna":
+      return callOpenAI(messages, "gpt-5.6-luna", options, startTime);
     case "openai":
       return callOpenAI(messages, "gpt-4o", options, startTime);
     case "anthropic":
